@@ -1,0 +1,79 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: clientefacil
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - ../cliente-facil-database:/var/lib/postgresql/data
+    networks:
+      - main_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d clientefacil"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    container_name: backend
+    build:
+      context: ..
+      dockerfile: ./cliente-facil-docker/backend/Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    user: "${UID:-1000}:${GID:-1000}"
+    working_dir: /app
+    volumes:
+      - ../cliente-facil-java:/app
+      - maven_cache:/tmp/.m2
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/clientefacil
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: admin
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8080
+      MAVEN_CONFIG: /tmp/.m2
+    networks:
+      - main_network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    container_name: frontend
+    build:
+      context: ..
+      dockerfile: ./cliente-facil-docker/frontend/Dockerfile
+    working_dir: /app
+    volumes:
+      - ../cliente-facil-next:/app
+      - frontend_node_modules:/app/node_modules
+      - frontend_pnpm_store:/root/.local/share/pnpm/store
+    ports:
+      - "3000:3000"
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_API_URL: http://localhost:8080/api/v1
+      INTERNAL_API_URL: http://backend:8080
+    networks:
+      - main_network
+    depends_on:
+      - backend
+
+networks:
+  main_network:
+    driver: bridge
+
+volumes:
+  maven_cache:
+  frontend_node_modules:
+  frontend_pnpm_store:
