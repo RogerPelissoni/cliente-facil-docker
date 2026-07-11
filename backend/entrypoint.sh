@@ -23,4 +23,5 @@ echo "🧹 Executando build limpo (mvn clean)..."
 echo "⚠️ Isso evita problemas com migrations antigas no Flyway (target/classes)"
 
 # Execução padrão usando ciclo correto do Maven
-exec $MVN_CMD clean spring-boot:run
+# exec $MVN_CMD clean spring-boot:run
+exec $MVN_CMD spring-boot:run
