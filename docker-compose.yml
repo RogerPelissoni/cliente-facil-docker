@@ -21,11 +21,8 @@ services:
   backend:
     container_name: backend
     build:
-      context: ..
-      dockerfile: ./cliente-facil-docker/backend/Dockerfile
-      args:
-        UID: ${UID:-1000}
-        GID: ${GID:-1000}
+      context: .
+      dockerfile: ./backend/Dockerfile
     user: "${UID:-1000}:${GID:-1000}"
     working_dir: /app
     volumes:
@@ -48,13 +45,13 @@ services:
   frontend:
     container_name: frontend
     build:
-      context: ..
-      dockerfile: ./cliente-facil-docker/frontend/Dockerfile
+      context: .
+      dockerfile: ./frontend/Dockerfile
+    user: "${UID:-1000}:${GID:-1000}"
     working_dir: /app
     volumes:
       - ../cliente-facil-next:/app
       - frontend_node_modules:/app/node_modules
-      - frontend_pnpm_store:/root/.local/share/pnpm/store
     ports:
       - "3000:3000"
       - "3001:3001"
@@ -76,4 +73,3 @@ networks:
 volumes:
   maven_cache:
   frontend_node_modules:
-  frontend_pnpm_store:

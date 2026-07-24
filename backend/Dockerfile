@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y bash curl && rm -rf /var/lib/apt/lists/
 # seja gravável independentemente do UID/GID com que o container roda.
 RUN mkdir -p /home/ubuntu/.m2 && chmod -R 777 /home/ubuntu/.m2
 
-COPY cliente-facil-docker/backend/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY backend/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 8080
