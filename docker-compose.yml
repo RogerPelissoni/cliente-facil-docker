@@ -37,6 +37,17 @@ services:
       timeout: 5s
       retries: 10
 
+  # SMTP mock pra dev/teste: qualquer e-mail enviado pela aplicação cai aqui em vez de sair de
+  # verdade. UI web em :8025 pra inspecionar as mensagens recebidas.
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    ports:
+      - "1025:1025" # porta SMTP, usada pelo backend pra enviar
+      - "8025:8025" # UI web pra visualizar os e-mails recebidos
+    networks:
+      - main_network
+
   backend:
     container_name: backend
     build:
@@ -59,6 +70,8 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: guest
       SPRING_RABBITMQ_PASSWORD: guest
+      MAIL_DEFAULT_HOST: mailhog
+      MAIL_DEFAULT_PORT: 1025
     networks:
       - main_network
     depends_on:
@@ -66,6 +79,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      mailhog:
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8080'"]
       interval: 10s
